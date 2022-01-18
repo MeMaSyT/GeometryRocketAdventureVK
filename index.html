@@ -1,0 +1,102 @@
+﻿<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | Geometry Rocket Adventure</title>
+  </head>
+  <body style="text-align: center">
+    <!-- Yandex Games SDK -->
+    <script src="https://yandex.ru/games/sdk/v2"></script>
+
+
+    <!-- ������ ������� ��� ������ ���� -->
+    <script type="text/javascript">
+        var player;
+        var sdk;
+        var payments = null;
+
+
+        YaGames.init({
+                adv: {
+                    onAdvClose: wasShown => {
+                        console.info('adv closed!');
+                    }
+                }
+            })
+            .then(ysdk => {
+                sdk = ysdk;
+                sdk.adv.showFullscreenAdv({
+                    callbacks: {}
+                });
+            });
+    </script>
+    <!-- ��������� ������� � ������ ����� -->
+    <script>
+        function showFullscrenAd() {
+            sdk.adv.showFullscreenAdv({
+                callbacks: {
+                    onClose: function(wasShown) {
+                        unityInstance.SendMessage('YandexSDK', 'OnInterstitialShown');
+                    },
+                    onError: function(error) {
+                        unityInstance.SendMessage('YandexSDK', 'OnInterstitialFailed', error);
+                    }
+                }
+            })
+        }
+    </script>
+    <!-- ��������� ������� �� �������������� -->
+    <script>
+        function showRewardedAd(id) {
+            sdk.adv.showRewardedVideo({
+                callbacks: {
+                    onOpen: () => {
+                        unityInstance.SendMessage('YandexSDK', 'OnRewardedOpen', id);
+                        console.log('Video ad open. Id: ' + id);
+
+                    },
+                    onRewarded: () => {
+                        unityInstance.SendMessage('YandexSDK', 'OnRewarded', id);
+                        console.log('Rewarded! Id: ' + id);
+                        
+	                 location.reload();
+
+
+                    },
+                    onClose: () => {
+                        unityInstance.SendMessage('YandexSDK', 'OnRewardedClose', id);
+                        console.log('Video ad closed. Id: ' + id);
+                    },
+                    onError: (e) => {
+                        var data = {
+                            "id": id,
+                            "error": error
+                        };
+                        unityInstance.SendMessage('YandexSDK', 'OnRewardedError', JSON.stringify(data));
+                        console.log('Error while open video ad:', e);
+                    }
+                }
+            })
+           
+        }
+    </script>
+    <canvas id="unity-canvas" width=960 height=600 style="width: 99vw; height: 97vh; background: #231F20"></canvas>
+    <script src="Build/webTrue.loader.js"></script>
+    <script src="Build/VkBridge.js"></script>
+    <script>VkBridge.send('VKWebAppInit');</script>
+    <script>
+      createUnityInstance(document.querySelector("#unity-canvas"), {
+        dataUrl: "Build/webTrue.data.unityweb",
+        frameworkUrl: "Build/webTrue.framework.js.unityweb",
+        codeUrl: "Build/webTrue.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "MeMaSyT_Games",
+        productName: "Geometry Rocket Adventure",
+        productVersion: "1.0.4.1",
+        // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
+        // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
+      });
+    </script>
+  </body>
+</html>
